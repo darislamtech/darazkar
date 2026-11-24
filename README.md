@@ -30,3 +30,9 @@
 ## ملاحظة للتطوير
 
 عند تعديل أي ملف، غيّر رقم الإصدار في `CACHE_NAME` داخل `sw.js` حتى تصل التحديثات للأجهزة التي ثبّتت التطبيق.
+
+## SEO
+
+- عنوان الموقع الأساسي حالياً: `https://azkar-iota.vercel.app/`.
+- لو اتغير الدومين، حدّثه في: `index.html` (canonical و og و twitter و JSON-LD) و `robots.txt` و `sitemap.xml`.
+- صورة المشاركة على السوشيال: `icons/og-image.png` (1200×630).
