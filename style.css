@@ -1,3 +1,21 @@
+@font-face {
+    font-family: "Noto Naskh Arabic";
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url("fonts/noto-naskh-arabic-arabic.woff2") format("woff2");
+    unicode-range: U+0600-06FF, U+0750-077F, U+0870-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@font-face {
+    font-family: "Noto Naskh Arabic";
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url("fonts/noto-naskh-arabic-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
     --ink: #17211d;
     --muted: #60706a;
@@ -20,7 +38,7 @@ html {
 body {
     min-height: 100vh;
     margin: 0;
-    font-family: "Noto Naskh Arabic", serif;
+    font-family: "Noto Naskh Arabic", "Segoe UI", Tahoma, serif;
     color: var(--ink);
     background:
         radial-gradient(circle at top right, rgba(22, 124, 128, 0.16), transparent 28rem),
@@ -36,6 +54,10 @@ button {
     min-height: 100vh;
     margin: 0 auto;
     padding: 18px;
+    padding-top: max(18px, env(safe-area-inset-top));
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
 }
 
 .app-header {
@@ -44,6 +66,53 @@ button {
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 16px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-logo {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 auto;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(13, 74, 68, 0.25);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.install-button {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 22px;
+    color: white;
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.install-button[hidden],
+.ios-hint[hidden] {
+    display: none;
+}
+
+.ios-hint {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--muted);
+    background: rgba(255, 253, 247, 0.82);
+    font-size: 0.92rem;
 }
 
 .eyebrow {
@@ -55,7 +124,7 @@ button {
 
 h1 {
     margin: 0;
-    font-size: clamp(2rem, 8vw, 3.5rem);
+    font-size: clamp(1.7rem, 7vw, 3rem);
     line-height: 1;
 }
 
@@ -141,6 +210,34 @@ h1 {
     display: grid;
     gap: 12px;
     padding-bottom: 28px;
+    flex: 1 0 auto;
+}
+
+.app-footer {
+    padding: 16px 8px 4px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    text-align: center;
+    font-size: 0.92rem;
+    line-height: 1.9;
+}
+
+.app-footer a {
+    color: var(--green);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.app-footer a:hover {
+    text-decoration: underline;
+}
+
+.app-footer .footer-site {
+    display: block;
+    direction: ltr;
+    font-size: 0.82rem;
+    opacity: 0.8;
+    font-weight: 400;
 }
 
 .dhikr-card {
@@ -214,7 +311,14 @@ h1 {
 
 @media (max-width: 520px) {
     .app-shell {
-        padding: 14px;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .brand-logo {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
     }
 
     .dhikr-text {

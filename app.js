@@ -129,3 +129,45 @@ resetButton.addEventListener("click", function() {
 });
 
 setCategory(state.category);
+
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    window.addEventListener("load", function() {
+        navigator.serviceWorker.register("sw.js").catch(function() {});
+    });
+}
+
+// زر تثبيت التطبيق على الموبايل (أندرويد / كروم) وتلميح للآيفون
+(function() {
+    const installButton = document.getElementById("installApp");
+    const iosHint = document.getElementById("iosHint");
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    let deferredPrompt = null;
+
+    if (standalone) return;
+
+    window.addEventListener("beforeinstallprompt", function(event) {
+        event.preventDefault();
+        deferredPrompt = event;
+        installButton.hidden = false;
+    });
+
+    installButton.addEventListener("click", function() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.finally(function() {
+            deferredPrompt = null;
+            installButton.hidden = true;
+        });
+    });
+
+    window.addEventListener("appinstalled", function() {
+        installButton.hidden = true;
+    });
+
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (isIos && !localStorage.getItem("dar_azkar_ios_hint_seen")) {
+        iosHint.hidden = false;
+        localStorage.setItem("dar_azkar_ios_hint_seen", "1");
+    }
+})();
