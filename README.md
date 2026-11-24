@@ -33,7 +33,7 @@
 
 ## SEO
 
-- عنوان الموقع الأساسي حالياً: `https://azkar-iota.vercel.app/`.
+- عنوان الموقع الأساسي حالياً: `https://darazkar.vercel.app/`.
 - لو اتغير الدومين، حدّثه في: `index.html` (canonical و og و twitter و JSON-LD) و `robots.txt` و `sitemap.xml`.
 - صورة المشاركة على السوشيال: `icons/og-image.png` (1200×630).
 - مفتاح IndexNow (لإبلاغ Bing و Yandex بالتحديثات): `0f947393ad4a2c91c261ad7aff0e022c.txt` في جذر الموقع.
