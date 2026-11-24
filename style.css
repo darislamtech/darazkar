@@ -241,6 +241,7 @@ h1 {
 }
 
 .dhikr-card {
+    scroll-margin-top: 14px;
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 14px;
