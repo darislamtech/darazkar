@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://azkar-iota.vercel.app/sitemap.xml
+Sitemap: https://darazkar.vercel.app/sitemap.xml
