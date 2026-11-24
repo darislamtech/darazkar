@@ -72,6 +72,7 @@ function renderList() {
         const card = document.createElement("article");
 
         card.className = "dhikr-card" + (complete ? " complete" : "");
+        card.dataset.id = item.id;
         card.innerHTML = [
             '<div class="card-top">',
             '<span class="counter">' + done + " / " + item.count + "</span>",
@@ -114,7 +115,32 @@ list.addEventListener("click", function(event) {
     state.progress[item.id] = Math.min((state.progress[item.id] || 0) + 1, item.count);
     saveProgress();
     renderList();
+
+    if (state.progress[item.id] >= item.count) {
+        scrollToNextDhikr(item.id);
+    }
 });
+
+// بعد إتمام الذكر ينزل تلقائياً للذكر التالي غير المكتمل
+function scrollToNextDhikr(finishedId) {
+    const items = getCategory().items;
+    const start = items.findIndex(function(entry) { return entry.id === finishedId; });
+    const ordered = items.slice(start + 1).concat(items.slice(0, start));
+    const next = ordered.find(function(entry) {
+        return (state.progress[entry.id] || 0) < entry.count;
+    });
+
+    if (!next) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    setTimeout(function() {
+        const card = list.querySelector('.dhikr-card[data-id="' + next.id + '"]');
+        if (card) {
+            card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+        }
+    }, 350);
+}
 
 tabs.forEach(function(tab) {
     tab.addEventListener("click", function() {
