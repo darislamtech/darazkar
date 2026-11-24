@@ -2,24 +2,43 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أذكاري</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>دار الأذكار</title>
+    <meta name="description" content="دار الأذكار: أذكار الصباح والمساء والنوم مع عداد للتكرار، تعمل بدون إنترنت. من إعداد دار الإسلام والتقنية.">
+    <meta name="theme-color" content="#176f4b">
+    <meta name="application-name" content="دار الأذكار">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="دار الأذكار">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="preload" href="fonts/noto-naskh-arabic-arabic.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <main class="app-shell">
         <header class="app-header">
-            <div>
-                <p class="eyebrow">وردك اليومي</p>
-                <h1>أذكاري</h1>
+            <div class="brand">
+                <img class="brand-logo" src="icons/icon.svg" alt="" width="56" height="56">
+                <div>
+                    <p class="eyebrow">وردك اليومي</p>
+                    <h1>دار الأذكار</h1>
+                </div>
             </div>
-            <button class="icon-button" id="resetProgress" type="button" aria-label="إعادة ضبط تقدم اليوم" title="إعادة ضبط تقدم اليوم">
-                ↻
-            </button>
+            <div class="header-actions">
+                <button class="install-button" id="installApp" type="button" hidden>تثبيت التطبيق</button>
+                <button class="icon-button" id="resetProgress" type="button" aria-label="إعادة ضبط تقدم اليوم" title="إعادة ضبط تقدم اليوم">
+                    ↻
+                </button>
+            </div>
         </header>
+
+        <p class="ios-hint" id="iosHint" hidden>
+            لتثبيت التطبيق على الآيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».
+        </p>
 
         <nav class="tabs" aria-label="أقسام الأذكار">
             <button class="tab active" type="button" data-category="morning">الصباح</button>
@@ -38,6 +57,12 @@
         </section>
 
         <section class="dhikr-list" id="dhikrList" aria-label="قائمة الأذكار"></section>
+
+        <footer class="app-footer">
+            تم إنشاؤه بواسطة
+            <a href="https://darislamtech.com" target="_blank" rel="noopener">دار الإسلام والتقنية</a>
+            <a class="footer-site" href="https://darislamtech.com" target="_blank" rel="noopener">darislamtech.com</a>
+        </footer>
     </main>
 
     <script src="data.js"></script>
