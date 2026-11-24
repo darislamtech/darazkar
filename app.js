@@ -1,6 +1,15 @@
+// اليوم الجديد يبدأ الساعة 3 الفجر (عشان أذكار النوم بعد نص الليل تتحسب لنفس الليلة)
+const DAY_START_HOUR = 3;
+// الصباح من 3 الفجر لحد 3 العصر، والمساء من 3 العصر لحد 3 الفجر
+const EVENING_START_HOUR = 15;
+// بالليل بعد الساعة دي، لو أذكار المساء خلصت يفتح على أذكار النوم
+const SLEEP_START_HOUR = 21;
+
 const state = {
     category: "morning",
-    progress: {}
+    progress: {},
+    day: "",
+    autoKey: ""
 };
 
 const tabs = document.querySelectorAll(".tab");
@@ -13,19 +22,65 @@ function getCategory() {
     return azkarCategories[state.category];
 }
 
+function pad(value) {
+    return String(value).padStart(2, "0");
+}
+
+function getDayKey(now) {
+    const shifted = new Date(now || Date.now());
+    shifted.setHours(shifted.getHours() - DAY_START_HOUR);
+    return shifted.getFullYear() + "-" + pad(shifted.getMonth() + 1) + "-" + pad(shifted.getDate());
+}
+
+// التقدم محفوظ مع تاريخ اليوم، ولو اليوم اتغير يرجع من الأول
 function loadProgress(categoryKey) {
     const category = azkarCategories[categoryKey];
 
     try {
-        return JSON.parse(localStorage.getItem(category.storageKey)) || {};
+        const saved = JSON.parse(localStorage.getItem(category.storageKey));
+        if (saved && saved.day === getDayKey() && saved.progress) {
+            return saved.progress;
+        }
     } catch (error) {
-        return {};
+        // تجاهل البيانات التالفة
     }
+
+    return {};
 }
 
 function saveProgress() {
     const category = getCategory();
-    localStorage.setItem(category.storageKey, JSON.stringify(state.progress));
+    localStorage.setItem(category.storageKey, JSON.stringify({
+        day: getDayKey(),
+        progress: state.progress
+    }));
+}
+
+function isCategoryComplete(categoryKey) {
+    const progress = loadProgress(categoryKey);
+
+    return azkarCategories[categoryKey].items.every(function(item) {
+        return (progress[item.id] || 0) >= item.count;
+    });
+}
+
+// يختار القسم المناسب حسب وقت فتح التطبيق
+function getCategoryForNow() {
+    const hour = new Date().getHours();
+    const isEvening = hour >= EVENING_START_HOUR || hour < DAY_START_HOUR;
+
+    if (!isEvening) return "morning";
+
+    const isNight = hour >= SLEEP_START_HOUR || hour < DAY_START_HOUR;
+    if (isNight && isCategoryComplete("evening")) return "sleep";
+
+    return "evening";
+}
+
+function getPeriodKey() {
+    const hour = new Date().getHours();
+    const isEvening = hour >= EVENING_START_HOUR || hour < DAY_START_HOUR;
+    return getDayKey() + (isEvening ? "-evening" : "-morning");
 }
 
 function getCompletedCount() {
@@ -94,6 +149,7 @@ function renderList() {
 function setCategory(categoryKey) {
     state.category = categoryKey;
     state.progress = loadProgress(categoryKey);
+    state.day = getDayKey();
 
     tabs.forEach(function(tab) {
         tab.classList.toggle("active", tab.dataset.category === categoryKey);
@@ -111,6 +167,12 @@ list.addEventListener("click", function(event) {
     });
 
     if (!item) return;
+
+    // لو اليوم اتغير والتطبيق مفتوح، ابدأ يوم جديد قبل العد
+    if (state.day !== getDayKey()) {
+        state.progress = {};
+        state.day = getDayKey();
+    }
 
     state.progress[item.id] = Math.min((state.progress[item.id] || 0) + 1, item.count);
     saveProgress();
@@ -154,7 +216,24 @@ resetButton.addEventListener("click", function() {
     renderList();
 });
 
-setCategory(state.category);
+function openCategoryForNow() {
+    state.autoKey = getPeriodKey();
+    setCategory(getCategoryForNow());
+    window.scrollTo(0, 0);
+}
+
+// لما ترجع للتطبيق وهو مفتوح في الخلفية: لو الفترة اتغيرت (صباح/مساء/يوم جديد) يتحدث لوحده
+document.addEventListener("visibilitychange", function() {
+    if (document.visibilityState !== "visible") return;
+
+    if (state.autoKey !== getPeriodKey()) {
+        openCategoryForNow();
+    } else if (state.day !== getDayKey()) {
+        setCategory(state.category);
+    }
+});
+
+openCategoryForNow();
 
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
     window.addEventListener("load", function() {
