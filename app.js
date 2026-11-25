@@ -4,14 +4,14 @@ const DAY_START_HOUR = 3;
 const EVENING_START_HOUR = 15;
 // بالليل بعد الساعة دي، لو أذكار المساء خلصت يفتح على أذكار النوم
 const SLEEP_START_HOUR = 21;
+// المسافة بين آخر مربع الذكر وأسفل الشاشة بعد الانتقال للذكر التالي (حوالي 2 سم)
+const CARD_BOTTOM_GAP = 76;
 
 const state = {
     category: "morning",
     progress: {},
     day: "",
-    autoKey: "",
-    // الذكر اللي بيعدّه الزر الثابت تحت
-    currentId: null
+    autoKey: ""
 };
 
 const tabs = document.querySelectorAll(".tab");
@@ -19,9 +19,6 @@ const list = document.getElementById("dhikrList");
 const title = document.getElementById("categoryTitle");
 const percent = document.getElementById("progressPercent");
 const resetButton = document.getElementById("resetProgress");
-const tapButton = document.getElementById("tapButton");
-const tapCount = document.getElementById("tapCount");
-const tapLabel = document.getElementById("tapLabel");
 
 function getCategory() {
     return azkarCategories[state.category];
@@ -112,37 +109,6 @@ function updateSummary() {
     document.documentElement.style.setProperty("--progress", value + "%");
 }
 
-function isItemComplete(item) {
-    return (state.progress[item.id] || 0) >= item.count;
-}
-
-// أول ذكر لسه مخلصش، بعد الذكر ده (ولو مفيش يرجع من أول القسم)
-function findNextIncomplete(afterId) {
-    const items = getCategory().items;
-    const start = afterId ? items.findIndex(function(entry) { return entry.id === afterId; }) : -1;
-    const ordered = items.slice(start + 1).concat(items.slice(0, start + 1));
-
-    return ordered.find(function(entry) { return !isItemComplete(entry); }) || null;
-}
-
-function updateTapButton() {
-    const item = getCategory().items.find(function(entry) { return entry.id === state.currentId; });
-
-    if (!item) {
-        tapButton.disabled = true;
-        tapCount.textContent = "";
-        tapLabel.textContent = "اكتملت " + getCategory().title;
-        tapButton.setAttribute("aria-label", "اكتملت " + getCategory().title);
-        return;
-    }
-
-    const remaining = Math.max(item.count - (state.progress[item.id] || 0), 0);
-    tapButton.disabled = false;
-    tapCount.textContent = remaining;
-    tapLabel.textContent = "تكرار متبقّي";
-    tapButton.setAttribute("aria-label", "عدّ الذكر الحالي، تكرار متبقّي: " + remaining);
-}
-
 function escapeHtml(value) {
     return String(value)
         .replace(/&/g, "&amp;")
@@ -162,7 +128,7 @@ function renderList() {
         const complete = remaining === 0;
         const card = document.createElement("article");
 
-        card.className = "dhikr-card" + (complete ? " complete" : "") + (item.id === state.currentId ? " current" : "");
+        card.className = "dhikr-card" + (complete ? " complete" : "");
         card.dataset.id = item.id;
         card.innerHTML = [
             '<div class="card-top">',
@@ -180,15 +146,12 @@ function renderList() {
     });
 
     updateSummary();
-    updateTapButton();
 }
 
 function setCategory(categoryKey) {
     state.category = categoryKey;
     state.progress = loadProgress(categoryKey);
     state.day = getDayKey();
-    const first = findNextIncomplete(null);
-    state.currentId = first ? first.id : null;
 
     tabs.forEach(function(tab) {
         tab.classList.toggle("active", tab.dataset.category === categoryKey);
@@ -197,10 +160,12 @@ function setCategory(categoryKey) {
     renderList();
 }
 
-// يعدّ تكرار واحد للذكر، ولو خلص ينقل للذكر اللي بعده
-function countDhikr(itemId) {
+list.addEventListener("click", function(event) {
+    const button = event.target.closest(".count-button");
+    if (!button) return;
+
     const item = getCategory().items.find(function(entry) {
-        return entry.id === itemId;
+        return entry.id === button.dataset.id;
     });
 
     if (!item) return;
@@ -213,41 +178,36 @@ function countDhikr(itemId) {
 
     state.progress[item.id] = Math.min((state.progress[item.id] || 0) + 1, item.count);
     saveProgress();
-
-    let next = null;
-    if (isItemComplete(item)) {
-        next = findNextIncomplete(item.id);
-        state.currentId = next ? next.id : null;
-    } else {
-        state.currentId = item.id;
-    }
-
     renderList();
 
-    if (next) scrollToDhikr(next.id);
-}
-
-// زر الذكر جوه الكارت: يعدّ الذكر ده ويخليه هو الذكر الحالي
-list.addEventListener("click", function(event) {
-    const button = event.target.closest(".count-button");
-    if (!button) return;
-    countDhikr(button.dataset.id);
+    if (state.progress[item.id] >= item.count) {
+        scrollToNextDhikr(item.id);
+    }
 });
 
-// الزر الثابت تحت: يعدّ الذكر الحالي
-tapButton.addEventListener("click", function() {
-    if (state.currentId) countDhikr(state.currentId);
-});
+// بعد إتمام الذكر ينزل تلقائياً للذكر التالي غير المكتمل،
+// بحيث آخر مربع الذكر (والزر) يقف دايماً على بعد حوالي 2 سم من أسفل الشاشة (مكان الصباع)، مهما كان طول الذكر
+function scrollToNextDhikr(finishedId) {
+    const items = getCategory().items;
+    const start = items.findIndex(function(entry) { return entry.id === finishedId; });
+    const ordered = items.slice(start + 1).concat(items.slice(0, start));
+    const next = ordered.find(function(entry) {
+        return (state.progress[entry.id] || 0) < entry.count;
+    });
 
-// بعد إتمام الذكر يطلع الذكر التالي لأول الشاشة
-function scrollToDhikr(nextId) {
+    if (!next) return;
+
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     setTimeout(function() {
-        const card = list.querySelector('.dhikr-card[data-id="' + nextId + '"]');
-        if (card) {
-            card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-        }
+        const card = list.querySelector('.dhikr-card[data-id="' + next.id + '"]');
+        if (!card) return;
+
+        const offset = card.getBoundingClientRect().bottom - (window.innerHeight - CARD_BOTTOM_GAP);
+        window.scrollTo({
+            top: window.scrollY + offset,
+            behavior: reduceMotion ? "auto" : "smooth"
+        });
     }, 350);
 }
 
@@ -260,8 +220,6 @@ tabs.forEach(function(tab) {
 resetButton.addEventListener("click", function() {
     state.progress = {};
     saveProgress();
-    const first = findNextIncomplete(null);
-    state.currentId = first ? first.id : null;
     renderList();
 });
 
