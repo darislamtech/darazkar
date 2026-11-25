@@ -4,8 +4,8 @@ const DAY_START_HOUR = 3;
 const EVENING_START_HOUR = 15;
 // بالليل بعد الساعة دي، لو أذكار المساء خلصت يفتح على أذكار النوم
 const SLEEP_START_HOUR = 21;
-// المسافة بين آخر مربع الذكر وأسفل الشاشة بعد الانتقال للذكر التالي (حوالي 2 سم)
-const CARD_BOTTOM_GAP = 76;
+// المسافة بين آخر مربع الذكر وأسفل الشاشة بعد الانتقال للذكر التالي (حوالي 3 سم)
+const CARD_BOTTOM_GAP = 115;
 
 const state = {
     category: "morning",
@@ -186,7 +186,7 @@ list.addEventListener("click", function(event) {
 });
 
 // بعد إتمام الذكر ينزل تلقائياً للذكر التالي غير المكتمل،
-// بحيث آخر مربع الذكر (والزر) يقف دايماً على بعد حوالي 2 سم من أسفل الشاشة (مكان الصباع)، مهما كان طول الذكر
+// بحيث آخر مربع الذكر (والزر) يقف دايماً على بعد حوالي 3 سم من أسفل الشاشة (مكان الصباع)، مهما كان طول الذكر
 function scrollToNextDhikr(finishedId) {
     const items = getCategory().items;
     const start = items.findIndex(function(entry) { return entry.id === finishedId; });
