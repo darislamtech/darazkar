@@ -1,5 +1,5 @@
 // غيّر رقم الإصدار عند تعديل أي ملف ليتم تحديث النسخة المحفوظة على الأجهزة
-const CACHE_NAME = "dar-al-azkar-v4";
+const CACHE_NAME = "dar-al-azkar-v5";
 
 const ASSETS = [
     "./",
