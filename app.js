@@ -5,7 +5,7 @@ const EVENING_START_HOUR = 15;
 // بالليل بعد الساعة دي، لو أذكار المساء خلصت يفتح على أذكار النوم
 const SLEEP_START_HOUR = 21;
 // المسافة بين آخر مربع الذكر وأسفل الشاشة بعد الانتقال للذكر التالي (حوالي 5 سم)
-const CARD_BOTTOM_GAP = 191;
+const CARD_BOTTOM_GAP = 300;
 
 const state = {
     category: "morning",
