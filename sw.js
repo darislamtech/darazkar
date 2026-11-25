@@ -1,5 +1,6 @@
-// غيّر رقم الإصدار عند تعديل أي ملف ليتم تحديث النسخة المحفوظة على الأجهزة
-const CACHE_NAME = "dar-al-azkar-v7";
+// ملفات الكود (الصفحة، الأذكار، الشكل، البرمجة) بتيجي من الشبكة أولاً، فأي تعديل بيوصل لوحده أول ما التطبيق يتفتح.
+// النسخة المحفوظة بتستخدم بس لما يكون مفيش إنترنت. تغيير الرقم ده بيمسح النسخة المحفوظة القديمة كلها.
+const CACHE_NAME = "dar-al-azkar-v8";
 
 const ASSETS = [
     "./",
@@ -46,7 +47,7 @@ self.addEventListener("fetch", function(event) {
     // الصفحة نفسها: من الشبكة أولاً ثم النسخة المحفوظة عند انقطاع الإنترنت
     if (request.mode === "navigate") {
         event.respondWith(
-            fetch(request)
+            fetch(request, { cache: "no-cache" })
                 .then(function(response) {
                     const copy = response.clone();
                     caches.open(CACHE_NAME).then(function(cache) { cache.put("./index.html", copy); });
@@ -57,7 +58,25 @@ self.addEventListener("fetch", function(event) {
         return;
     }
 
-    // باقي الملفات: من النسخة المحفوظة أولاً
+    // ملفات الكود: من الشبكة أولاً (مع التأكد إنها أحدث نسخة) ثم المحفوظة عند انقطاع الإنترنت
+    if (/\.(js|css|webmanifest)$/.test(new URL(request.url).pathname)) {
+        event.respondWith(
+            fetch(request, { cache: "no-cache" })
+                .then(function(response) {
+                    if (response.ok) {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then(function(cache) { cache.put(request, copy); });
+                    }
+                    return response;
+                })
+                .catch(function() {
+                    return caches.match(request, { ignoreSearch: true });
+                })
+        );
+        return;
+    }
+
+    // الخطوط والأيقونات: من النسخة المحفوظة أولاً
     event.respondWith(
         caches.match(request).then(function(cached) {
             return cached || fetch(request).then(function(response) {

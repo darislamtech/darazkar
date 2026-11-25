@@ -4,8 +4,6 @@ const DAY_START_HOUR = 3;
 const EVENING_START_HOUR = 15;
 // بالليل بعد الساعة دي، لو أذكار المساء خلصت يفتح على أذكار النوم
 const SLEEP_START_HOUR = 21;
-// المسافة بين آخر مربع الذكر وأسفل الشاشة بعد الانتقال للذكر التالي
-const CARD_BOTTOM_GAP = 500;
 
 const state = {
     category: "morning",
@@ -186,7 +184,7 @@ list.addEventListener("click", function(event) {
 });
 
 // بعد إتمام الذكر ينزل تلقائياً للذكر التالي غير المكتمل،
-// بحيث آخر مربع الذكر (والزر) يقف دايماً على بعد حوالي 5 سم من أسفل الشاشة (مكان الصباع)، مهما كان طول الذكر
+// بحيث بداية زر الذكر التالي تيجي دايماً في نص الشاشة (مكان الصباع)، مهما كان طول الذكر
 function scrollToNextDhikr(finishedId) {
     const items = getCategory().items;
     const start = items.findIndex(function(entry) { return entry.id === finishedId; });
@@ -200,10 +198,10 @@ function scrollToNextDhikr(finishedId) {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     setTimeout(function() {
-        const card = list.querySelector('.dhikr-card[data-id="' + next.id + '"]');
-        if (!card) return;
+        const nextButton = list.querySelector('.count-button[data-id="' + next.id + '"]');
+        if (!nextButton) return;
 
-        const offset = card.getBoundingClientRect().bottom - (window.innerHeight - CARD_BOTTOM_GAP);
+        const offset = nextButton.getBoundingClientRect().top - window.innerHeight / 2;
         window.scrollTo({
             top: window.scrollY + offset,
             behavior: reduceMotion ? "auto" : "smooth"
@@ -242,9 +240,26 @@ document.addEventListener("visibilitychange", function() {
 
 openCategoryForNow();
 
+// التحديث التلقائي: كل مرة التطبيق يتفتح يدوّر على نسخة جديدة، ولو لقاها يعيد التحميل مرة واحدة عليها
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloading = false;
+
+    navigator.serviceWorker.addEventListener("controllerchange", function() {
+        if (!hadController || reloading) return;
+        reloading = true;
+        window.location.reload();
+    });
+
     window.addEventListener("load", function() {
-        navigator.serviceWorker.register("sw.js").catch(function() {});
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
+            .then(function(registration) {
+                registration.update().catch(function() {});
+                document.addEventListener("visibilitychange", function() {
+                    if (document.visibilityState === "visible") registration.update().catch(function() {});
+                });
+            })
+            .catch(function() {});
     });
 }
 
