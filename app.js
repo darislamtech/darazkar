@@ -240,15 +240,32 @@ document.addEventListener("visibilitychange", function() {
 
 openCategoryForNow();
 
-// التحديث التلقائي: كل مرة التطبيق يتفتح يدوّر على نسخة جديدة، ولو لقاها يعيد التحميل مرة واحدة عليها
+// التحديث التلقائي: التطبيق بيفتح على طول من النسخة المحفوظة، والتحديث بيتجاب في الخلفية.
+// لو وصلت نسخة جديدة: يتحدث على طول لو لسه مبدأتش تعدّ، وإلا في المرة الجاية اللي ترجع فيها للتطبيق
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
     const hadController = !!navigator.serviceWorker.controller;
     let reloading = false;
+    let userStarted = false;
+    let updateWaiting = false;
 
-    navigator.serviceWorker.addEventListener("controllerchange", function() {
-        if (!hadController || reloading) return;
+    function reloadOnce() {
+        if (reloading) return;
         reloading = true;
         window.location.reload();
+    }
+
+    document.addEventListener("click", function() { userStarted = true; }, true);
+
+    navigator.serviceWorker.addEventListener("controllerchange", function() {
+        if (!hadController) return;
+        if (userStarted) updateWaiting = true;
+        else reloadOnce();
+    });
+
+    navigator.serviceWorker.addEventListener("message", function(event) {
+        if (!event.data || event.data.type !== "updated") return;
+        if (userStarted) updateWaiting = true;
+        else reloadOnce();
     });
 
     window.addEventListener("load", function() {
@@ -256,7 +273,16 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
             .then(function(registration) {
                 registration.update().catch(function() {});
                 document.addEventListener("visibilitychange", function() {
-                    if (document.visibilityState === "visible") registration.update().catch(function() {});
+                    if (document.visibilityState !== "visible") return;
+                    // رجعت للتطبيق: لو فيه تحديث مستني يتطبق دلوقتي، وإلا ندوّر على تحديث في الخلفية
+                    if (updateWaiting) {
+                        reloadOnce();
+                        return;
+                    }
+                    registration.update().catch(function() {});
+                    if (navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({ type: "refresh" });
+                    }
                 });
             })
             .catch(function() {});
